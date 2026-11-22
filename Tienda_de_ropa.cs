@@ -353,6 +353,176 @@ class Program
         }
     }
 
+    static void VerColores()
+    {
+        Console.WriteLine("Colores disponibles:");
+
+        for (int c = 0; c < colores.Length; c++)
+        {
+            Console.WriteLine("  " + (c + 1) + ". " + colores[c]);
+        }
+    }
+
+    static void VerTallas()
+    {
+        Console.WriteLine("Tallas disponibles:");
+
+        for (int i = 0; i < tallas.Length; i++)
+        {
+            Console.WriteLine("  " + (i + 1) + ". " + tallas[i]);
+        }
+    }
+
+    // La gorra (5) y la bufanda (15) no llevan talla
+    static bool UsaTalla(int p)
+    {
+        if (p == 5 || p == 15)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    // ---------------------------------------------------------
+    //  VENTAS
+    // ---------------------------------------------------------
+
+    static void EmitirBoleta()
+    {
+        if (numBoleta > 1100)
+        {
+            Console.WriteLine("Talonario agotado.");
+            return;
+        }
+
+        string cliente = LeerTexto("Nombre del cliente: ");
+        string dni = LeerDni();
+
+        Console.Write("Forma de pago (1=Yape, 2=BCP): ");
+        int pago = LeerEntero();
+
+        while (pago < 1 || pago > 2)
+        {
+            Console.Write("Forma de pago invalida. Ingrese 1=Yape o 2=BCP: ");
+            pago = LeerEntero();
+        }
+
+        string fecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+        string formaPago = "Yape";
+
+        if (pago == 2) formaPago = "BCP";
+
+        double subtotal = 0;
+        string detalle = "";
+        int seguir = 1;
+
+        while (seguir == 1)
+        {
+            // Si el numero de prenda no existe, solo se vuelve a pedir el numero
+            int p = LeerPrenda();
+            int cant = LeerCantidad();
+
+            if (ObtenerStock(p) < cant)
+            {
+                Console.WriteLine("No se puede agregar: stock insuficiente. Solo hay " +
+                                  ObtenerStock(p));
+            }
+            else
+            {
+                VerColores();
+                Console.Write("Elija el color: ");
+                int c = LeerEntero();
+
+                while (c < 1 || c > colores.Length)
+                {
+                    Console.Write("Color invalido. Elija el color: ");
+                    c = LeerEntero();
+                }
+
+                string talla = "Unica";
+
+                if (UsaTalla(p))
+                {
+                    VerTallas();
+                    Console.Write("Elija la talla: ");
+                    int tl = LeerEntero();
+
+                    while (tl < 1 || tl > tallas.Length)
+                    {
+                        Console.Write("Talla invalida. Elija la talla: ");
+                        tl = LeerEntero();
+                    }
+
+                    talla = tallas[tl - 1];
+                }
+
+                PonerStock(p, ObtenerStock(p) - cant);
+                comprada[p - 1] += cant;
+
+                double importe = precios[p - 1] * cant;
+                subtotal += importe;
+
+                detalle += nombres[p - 1] + " | Talla " + talla +
+                           " | " + colores[c - 1] +
+                           " x" + cant + "  S/ " +
+                           importe.ToString("0.00") + "\n";
+
+                Console.WriteLine("Prenda agregada.");
+            }
+
+            Console.Write("Agregar otra prenda? (1=Si, 0=No): ");
+            seguir = LeerEntero();
+
+            while (seguir != 0 && seguir != 1)
+            {
+                Console.Write("Opcion invalida. Agregar otra prenda? (1=Si, 0=No): ");
+                seguir = LeerEntero();
+            }
+        }
+
+        if (subtotal == 0)
+        {
+            Console.WriteLine("No se agrego ninguna prenda. No se emite boleta.");
+            return;
+        }
+
+        double igv = subtotal * 0.18;
+        double total = subtotal + igv;
+
+        string boleta = "BOLETA N " + numBoleta + "\n";
+        boleta += "Fecha:    " + fecha + "\n";
+        boleta += "Cliente:  " + cliente + "\n";
+        boleta += "DNI:      " + dni + "\n";
+        boleta += detalle;
+        boleta += "Subtotal: S/ " + subtotal.ToString("0.00") + "\n";
+        boleta += "IGV 18%:  S/ " + igv.ToString("0.00") + "\n";
+        boleta += "TOTAL:    S/ " + total.ToString("0.00") + "\n";
+        boleta += "Pago:     " + formaPago + "\n";
+        boleta += "----------";
+
+        Console.WriteLine();
+        Console.WriteLine(boleta);
+
+        boletasMem += boleta + "\n";
+
+        if (archivosDisponibles)
+        {
+            try
+            {
+                File.AppendAllText(archivoBoletas, boleta + "\n");
+                Console.WriteLine("Boleta guardada.");
+            }
+            catch (Exception)
+            {
+                archivosDisponibles = false;
+            }
+        }
+
+        numBoleta++;
+        GuardarDatos();
+    }
+
     static void BuscarBoleta()
     {
         string[] lineas = LeerLineas(boletasMem);
