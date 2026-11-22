@@ -352,3 +352,46 @@ class Program
             Console.WriteLine("No se pudo leer " + archivoDatos + ". Se usan los datos iniciales.");
         }
     }
+
+    static void BuscarBoleta()
+    {
+        string[] lineas = LeerLineas(boletasMem);
+
+        if (lineas.Length == 0)
+        {
+            Console.WriteLine("Todavia no hay boletas guardadas.");
+            return;
+        }
+
+        Console.Write("Numero de boleta: ");
+        int num = LeerEntero();
+
+        bool mostrando = false;
+        bool hallada = false;
+
+        Console.WriteLine();
+
+        for (int i = 0; i < lineas.Length; i++)
+        {
+            if (lineas[i] == "BOLETA N " + num)
+            {
+                mostrando = true;
+                hallada = true;
+            }
+
+            if (mostrando)
+            {
+                Console.WriteLine(lineas[i]);
+
+                if (lineas[i] == "----------")
+                {
+                    mostrando = false;
+                }
+            }
+        }
+
+        if (!hallada)
+        {
+            Console.WriteLine("Boleta no encontrada.");
+        }
+    }
