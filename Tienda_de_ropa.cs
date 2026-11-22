@@ -565,3 +565,30 @@ class Program
             Console.WriteLine("Boleta no encontrada.");
         }
     }
+    
+    static void VerPrendasCompradas()
+    {
+        Console.WriteLine();
+        Console.WriteLine("N".PadRight(4) + "Prenda".PadRight(26) + "Cantidad".PadLeft(10));
+        Console.WriteLine(new string('-', 40));
+
+        int totalComprado = 0;
+
+        for (int p = 0; p < 15; p++)
+        {
+            totalComprado += comprada[p];
+
+            Console.WriteLine((p + 1).ToString().PadRight(4) +
+                              nombres[p].PadRight(26) +
+                              comprada[p].ToString().PadLeft(10));
+        }
+
+        Console.WriteLine(new string('-', 40));
+        Console.WriteLine("TOTAL".PadRight(30) + totalComprado.ToString().PadLeft(10));
+
+        if (totalComprado == 0)
+        {
+            Console.WriteLine("Todavia no se han comprado prendas.");
+        }
+    }
+}
