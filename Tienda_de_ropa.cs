@@ -363,35 +363,50 @@ class Program
             return;
         }
 
-        Console.Write("Numero de boleta: ");
-        int num = LeerEntero();
+        string dni = LeerDni();
 
-        bool mostrando = false;
+        bool enBoleta = false;
+        bool coincide = false;
         bool hallada = false;
+        string bloque = "";
 
         Console.WriteLine();
 
         for (int i = 0; i < lineas.Length; i++)
         {
-            if (lineas[i] == "BOLETA N " + num)
+            if (lineas[i].StartsWith("BOLETA N "))
             {
-                mostrando = true;
-                hallada = true;
+                enBoleta = true;
+                coincide = false;
+                bloque = "";
             }
 
-            if (mostrando)
+            if (enBoleta)
             {
-                Console.WriteLine(lineas[i]);
+                bloque += lineas[i] + "\n";
+
+                if (lineas[i].Contains(dni))
+                {
+                    coincide = true;
+                }
 
                 if (lineas[i] == "----------")
                 {
-                    mostrando = false;
+                    if (coincide)
+                    {
+                        Console.Write(bloque);
+                        Console.WriteLine();
+                        hallada = true;
+                    }
+
+                    enBoleta = false;
                 }
             }
         }
 
         if (!hallada)
         {
-            Console.WriteLine("Boleta no encontrada.");
+            Console.WriteLine("No se encontraron boletas para ese DNI.");
         }
     }
+    
