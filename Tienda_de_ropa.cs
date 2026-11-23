@@ -638,6 +638,61 @@ class Program
         }
     }
     
+    using System;
+using System.IO;
+
+class Program
+{
+    // Asumiendo que tus arreglos globales son similares a estos:
+    static string[] nombres = new string[15]; 
+    static int[] comprada = new int[15];
+
+    static void Main(string[] args)
+    {
+        MostrarMenu();
+    }
+
+    static void MostrarMenu()
+    {
+        int opcion = 0;
+
+        do
+        {
+            Console.WriteLine("\n=== MENÚ DE COMPRAS ===");
+            Console.WriteLine("1. Ver prendas compradas");
+            Console.WriteLine("2. Guardar en archivo de texto (.txt)");
+            Console.WriteLine("3. Guardar en archivo binario (.bin)");
+            Console.WriteLine("4. Salir");
+            Console.Write("Seleccione una opción: ");
+
+            if (!int.TryParse(Console.ReadLine(), out opcion))
+            {
+                Console.WriteLine("Por favor, ingrese un número válido.");
+                continue;
+            }
+
+            switch (opcion)
+            {
+                case 1:
+                    VerPrendasCompradas();
+                    break;
+                case 2:
+                    GuardarEnTxt();
+                    break;
+                case 3:
+                    GuardarEnBinario();
+                    break;
+                case 4:
+                    Console.WriteLine("Saliendo del programa...");
+                    break;
+                default:
+                    Console.WriteLine("Opción no válida. Intente de nuevo.");
+                    break;
+            }
+
+        } while (opcion != 4);
+    }
+
     static void VerPrendasCompradas()
     {
         Console.WriteLine();
@@ -649,10 +704,7 @@ class Program
         for (int p = 0; p < 15; p++)
         {
             totalComprado += comprada[p];
-
-            Console.WriteLine((p + 1).ToString().PadRight(4) +
-                              nombres[p].PadRight(26) +
-                              comprada[p].ToString().PadLeft(10));
+            Console.WriteLine((p + 1).ToString().PadRight(4) + nombres[p].PadRight(26) + comprada[p].ToString().PadLeft(10));
         }
 
         Console.WriteLine(new string('-', 40));
@@ -662,5 +714,46 @@ class Program
         {
             Console.WriteLine("Todavia no se han comprado prendas.");
         }
+    }
+
+    static void GuardarEnTxt()
+    {
+        string rutaArchivo = "prendas_compradas.txt";
+
+        using (StreamWriter writer = new StreamWriter(rutaArchivo))
+        {
+            writer.WriteLine("N".PadRight(4) + "Prenda".PadRight(26) + "Cantidad".PadLeft(10));
+            writer.WriteLine(new string('-', 40));
+
+            int totalComprado = 0;
+
+            for (int p = 0; p < 15; p++)
+            {
+                totalComprado += comprada[p];
+                writer.WriteLine((p + 1).ToString().PadRight(4) + nombres[p].PadRight(26) + comprada[p].ToString().PadLeft(10));
+            }
+
+            writer.WriteLine(new string('-', 40));
+            writer.WriteLine("TOTAL".PadRight(30) + totalComprado.ToString().PadLeft(10));
+        }
+
+        Console.WriteLine($"\nDatos guardados correctamente en '{rutaArchivo}'.");
+    }
+
+    static void GuardarEnBinario()
+    {
+        string rutaArchivo = "prendas_compradas.bin";
+
+        using (BinaryWriter writer = new BinaryWriter(File.Open(rutaArchivo, FileMode.Create)))
+        {
+            for (int p = 0; p < 15; p++)
+            {
+                // Maneja posibles valores nulos en nombres para evitar errores
+                writer.Write(nombres[p] ?? ""); 
+                writer.Write(comprada[p]);
+            }
+        }
+
+        Console.WriteLine($"\nDatos guardados correctamente en '{rutaArchivo}'.");
     }
 }
