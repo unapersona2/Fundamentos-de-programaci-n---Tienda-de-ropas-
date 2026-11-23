@@ -377,7 +377,29 @@ class Program
         Console.WriteLine("TOTAL".PadRight(46) + totalGeneral.ToString().PadLeft(8));
         Console.WriteLine("Tallas: XS, S, M, L, XL (se elige al comprar)");
     }
+static void AgregarPrenda()
+{
+    string nombre = LeerTexto("Nombre de la prenda: ");
 
+    Console.Write("Precio sin IGV: S/ ");
+    double precio;
+    while (!double.TryParse(Console.ReadLine(), out precio) || precio <= 0)
+        Console.Write("Precio invalido. Ingrese un numero mayor a 0: ");
+
+    Console.Write("Stock inicial (0-50): ");
+    int s = LeerEntero();
+    while (s < 0 || s > 50)
+    {
+        Console.Write("Stock invalido. Ingrese de 0 a 50: ");
+        s = LeerEntero();
+    }
+
+    nombres.Add(nombre);
+    precios.Add(precio);
+    stock.Add(s);
+    comprada.Add(0);
+    Console.WriteLine("Prenda agregada con el numero " + nombres.Count);
+}
     static void VerColores()
     {
         Console.WriteLine("Colores disponibles:");
