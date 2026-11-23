@@ -1,9 +1,10 @@
 using System;
 using System.IO;
-
+using System.Collections.Generic;
 class Program
 {
-    static string[] nombres = {
+    static List<string> nombres = new List<string>
+    {
         "Polo basico",
         "Camisa manga larga",
         "Jean clasico",
@@ -21,7 +22,8 @@ class Program
         "Bufanda"
     };
 
-    static double[] precios = {
+    static List<double> precios = new List<double>
+    {
         35, 80, 120, 45, 25, 180, 90, 250, 60, 70, 110, 150, 95, 130, 40
     };
 
@@ -34,10 +36,10 @@ class Program
     };
 
     // Una sola tienda: un stock por prenda
-    static int[] stock = new int[15];
+    static List<int> stock = new List<int>(new int[15]);
 
     // Cantidad total comprada de cada prenda
-    static int[] comprada = new int[15];
+    static List<int> comprada = new List<int>(new int[15]);
 
     static int numBoleta = 1001;
     static string carpeta = Path.Combine(
@@ -160,13 +162,13 @@ class Program
     // Pide el numero de prenda hasta que este entre 1 y 15
     static int LeerPrenda()
     {
-        Console.Write("Numero de prenda (1-15): ");
+        Console.Write("Numero de prenda (1-" + nombres.Count + "): ");
         int p = LeerEntero();
 
-        while (p < 1 || p > 15)
+        while (p < 1 || p > nombres.Count)
         {
-            Console.Write("Numero de prenda invalido. Ingrese un numero de 1 a 15: ");
-            p = LeerEntero();
+            Console.Write("Numero de prenda invalido. Ingrese un numero de 1 " + nombres.Count + ": ");
+    p = LeerEntero();
         }
 
         return p;
@@ -362,7 +364,7 @@ class Program
                           "Precio sin IGV".PadLeft(16) + "Stock".PadLeft(8));
         Console.WriteLine(new string('-', 54));
 
-        for (int p = 1; p <= 15; p++)
+        for (int p = 1; p <= nombres.Count; p++)
         {
             int cantidad = ObtenerStock(p);
             totalGeneral += cantidad;
@@ -376,6 +378,12 @@ class Program
         Console.WriteLine(new string('-', 54));
         Console.WriteLine("TOTAL".PadRight(46) + totalGeneral.ToString().PadLeft(8));
         Console.WriteLine("Tallas: XS, S, M, L, XL (se elige al comprar)");
+        Console.WriteLine();
+        Console.WriteLine("1. Agregar nueva prenda");
+        Console.WriteLine("0. Volver al menu principal");
+        Console.Write("Elija una opcion: ");
+            if (LeerEntero() == 1) AgregarPrenda();
+    
     }
 static void AgregarPrenda()
 {
@@ -723,7 +731,7 @@ class Program
 
         int totalComprado = 0;
 
-        for (int p = 0; p < 15; p++)
+        for (int p = 0; p < nombres.Count; p++)
         {
             totalComprado += comprada[p];
             Console.WriteLine((p + 1).ToString().PadRight(4) + nombres[p].PadRight(26) + comprada[p].ToString().PadLeft(10));
