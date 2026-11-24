@@ -651,7 +651,7 @@ class Program
             {
                 bloque += lineas[i] + "\n";
 
-                if (lineas[i] == "DNI:      " + dni)
+            if (lineas[i].StartsWith("DNI:") && lineas[i].EndsWith(dni))
                 {
                     coincide = true;
                 }
