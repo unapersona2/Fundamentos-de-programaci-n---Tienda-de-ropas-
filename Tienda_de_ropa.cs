@@ -47,8 +47,7 @@ class Program
     static string archivoDatos = Path.Combine(carpeta, "datos.txt");
     static string archivoBoletas = Path.Combine(carpeta, "boletas.txt");
 
-    // Copia en memoria de las boletas.
-    // Asi todo funciona aunque el equipo no permita guardar archivos.
+    // Copia en memoria de las boletas sincronizada con boletas.txt.
     static bool archivosDisponibles = true;
     static string boletasMem = "";
 
@@ -105,7 +104,10 @@ class Program
         try
         {
             Directory.CreateDirectory(carpeta);
-            File.AppendAllText(archivoBoletas, "");
+            if (!File.Exists(archivoBoletas))
+            {
+                File.WriteAllText(archivoBoletas, "");
+            }
 
             boletasMem = File.ReadAllText(archivoBoletas);
         }
@@ -114,6 +116,23 @@ class Program
             archivosDisponibles = false;
             Console.WriteLine("Aviso: aqui no se pueden guardar archivos.");
             Console.WriteLine("Los datos se conservan solo mientras el programa este abierto.");
+        }
+    }
+
+    static void SincronizarBoletasDesdeTxt()
+    {
+        if (!archivosDisponibles || !File.Exists(archivoBoletas))
+        {
+            return;
+        }
+
+        try
+        {
+            boletasMem = File.ReadAllText(archivoBoletas);
+        }
+        catch (Exception)
+        {
+            archivosDisponibles = false;
         }
     }
 
@@ -451,17 +470,16 @@ class Program
         string distrito = LeerTexto("Distrito: ");
         string calle = LeerTexto("Nombre de la calle: ");
 
-        Console.Write("Sexo del cliente (1=Hombre, 2=Mujer): ");
-        int sexo = LeerEntero();
+        Console.Write("Genero del cliente (1=Hombre, 2=Mujer): ");
+        int genero = LeerEntero();
 
-        while (sexo < 1 || sexo > 2)
+        while (genero < 1 || genero > 2)
         {
             Console.Write("Opcion invalida. Ingrese 1=Hombre o 2=Mujer: ");
-            sexo = LeerEntero();
+            genero = LeerEntero();
         }
 
-        string textoSexo = "Hombre";
-        if (sexo == 2) textoSexo = "Mujer";
+        string textoGenero = genero == 2 ? "Mujer" : "Hombre";
 
         Console.Write("Forma de pago (1=Yape, 2=BCP): ");
         int pago = LeerEntero();
@@ -473,9 +491,7 @@ class Program
         }
 
         string fecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-        string formaPago = "Yape";
-
-        if (pago == 2) formaPago = "BCP";
+        string formaPago = pago == 2 ? "BCP" : "Yape";
 
         List<int> stockAntes = new List<int>(stock);
         List<int> compradaAntes = new List<int>(comprada);
@@ -560,7 +576,7 @@ class Program
         boleta += "Fecha:    " + fecha + "\n";
         boleta += "Cliente:  " + cliente + "\n";
         boleta += "DNI:      " + dni + "\n";
-        boleta += "Sexo:     " + textoSexo + "\n";
+        boleta += "Genero:   " + textoGenero + "\n";
         boleta += "Pais:     " + pais + "\n";
         boleta += "Distrito: " + distrito + "\n";
         boleta += "Calle:    " + calle + "\n";
@@ -621,6 +637,7 @@ class Program
 
     static void BuscarBoleta()
     {
+        SincronizarBoletasDesdeTxt();
         string[] lineas = LeerLineas(boletasMem);
 
         if (lineas.Length == 0)
@@ -797,43 +814,69 @@ class Program
 
     static void GuardarEnTxt()
     {
-        string rutaArchivo = Path.Combine(carpeta, "prendas_compradas.txt");
-
-        using (StreamWriter writer = new StreamWriter(rutaArchivo))
+        if (!archivosDisponibles)
         {
-            writer.WriteLine("N".PadRight(4) + "Prenda".PadRight(26) + "Cantidad".PadLeft(10));
-            writer.WriteLine(new string('-', 40));
-
-            int totalComprado = 0;
-
-            for (int p = 0; p < nombres.Count; p++)
-            {
-                totalComprado += comprada[p];
-                writer.WriteLine((p + 1).ToString().PadRight(4) +
-                                 nombres[p].PadRight(26) +
-                                 comprada[p].ToString().PadLeft(10));
-            }
-
-            writer.WriteLine(new string('-', 40));
-            writer.WriteLine("TOTAL".PadRight(30) + totalComprado.ToString().PadLeft(10));
+            Console.WriteLine("\nNo se puede guardar el archivo en este entorno.");
+            return;
         }
 
-        Console.WriteLine("\nDatos guardados correctamente en '" + rutaArchivo + "'.");
+        string rutaArchivo = Path.Combine(carpeta, "prendas_compradas.txt");
+
+        try
+        {
+            using (StreamWriter writer = new StreamWriter(rutaArchivo))
+            {
+                writer.WriteLine("N".PadRight(4) + "Prenda".PadRight(26) + "Cantidad".PadLeft(10));
+                writer.WriteLine(new string('-', 40));
+
+                int totalComprado = 0;
+
+                for (int p = 0; p < nombres.Count; p++)
+                {
+                    totalComprado += comprada[p];
+                    writer.WriteLine((p + 1).ToString().PadRight(4) +
+                                     nombres[p].PadRight(26) +
+                                     comprada[p].ToString().PadLeft(10));
+                }
+
+                writer.WriteLine(new string('-', 40));
+                writer.WriteLine("TOTAL".PadRight(30) + totalComprado.ToString().PadLeft(10));
+            }
+
+            Console.WriteLine("\nDatos guardados correctamente en '" + rutaArchivo + "'.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("\nError al guardar en texto: " + ex.Message);
+        }
     }
 
     static void GuardarEnBinario()
     {
-        string rutaArchivo = Path.Combine(carpeta, "prendas_compradas.bin");
-
-        using (BinaryWriter writer = new BinaryWriter(File.Open(rutaArchivo, FileMode.Create)))
+        if (!archivosDisponibles)
         {
-            for (int p = 0; p < nombres.Count; p++)
-            {
-                writer.Write(nombres[p] ?? "");
-                writer.Write(comprada[p]);
-            }
+            Console.WriteLine("\nNo se puede guardar el archivo en este entorno.");
+            return;
         }
 
-        Console.WriteLine("\nDatos guardados correctamente en '" + rutaArchivo + "'.");
+        string rutaArchivo = Path.Combine(carpeta, "prendas_compradas.bin");
+
+        try
+        {
+            using (BinaryWriter writer = new BinaryWriter(File.Open(rutaArchivo, FileMode.Create)))
+            {
+                for (int p = 0; p < nombres.Count; p++)
+                {
+                    writer.Write(nombres[p] ?? "");
+                    writer.Write(comprada[p]);
+                }
+            }
+
+            Console.WriteLine("\nDatos guardados correctamente en '" + rutaArchivo + "'.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("\nError al guardar en binario: " + ex.Message);
+        }
     }
 }
