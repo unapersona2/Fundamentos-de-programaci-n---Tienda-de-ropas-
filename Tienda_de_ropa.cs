@@ -353,6 +353,31 @@ class Program
         }
     }
 
+static void VerCatalogoYStock()
+    {
+        int totalGeneral = 0;
+
+        Console.WriteLine();
+        Console.WriteLine("N".PadRight(4) + "Prenda".PadRight(26) +
+                          "Precio sin IGV".PadLeft(16) + "Stock".PadLeft(8));
+        Console.WriteLine(new string('-', 54));
+
+        for (int p = 1; p <= 15; p++)
+        {
+            int cantidad = ObtenerStock(p);
+            totalGeneral += cantidad;
+
+            Console.WriteLine(p.ToString().PadRight(4) +
+                              nombres[p - 1].PadRight(26) +
+                              ("S/ " + precios[p - 1].ToString("0.00")).PadLeft(16) +
+                              cantidad.ToString().PadLeft(8));
+        }
+
+        Console.WriteLine(new string('-', 54));
+        Console.WriteLine("TOTAL".PadRight(46) + totalGeneral.ToString().PadLeft(8));
+        Console.WriteLine("Tallas: XS, S, M, L, XL (se elige al comprar)");
+    }
+
     static void VerColores()
     {
         Console.WriteLine("Colores disponibles:");
