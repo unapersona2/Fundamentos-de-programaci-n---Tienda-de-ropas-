@@ -629,51 +629,105 @@ class Program
             return;
         }
 
-        string dni = LeerDni();
+        int tipo = 0;
 
-        bool enBoleta = false;
-        bool coincide = false;
-        bool hallada = false;
-        string bloque = "";
-
-        Console.WriteLine();
-
-        for (int i = 0; i < lineas.Length; i++)
+        do
         {
-            if (lineas[i].StartsWith("BOLETA N "))
+            Console.WriteLine("\n=== BUSCAR BOLETA ===");
+            Console.WriteLine("1. Buscar por numero de boleta");
+            Console.WriteLine("2. Buscar por DNI del cliente");
+            Console.WriteLine("0. Volver al menu principal");
+            Console.Write("Seleccione una opcion: ");
+            tipo = LeerEntero();
+
+            if (tipo == 1)
             {
-                enBoleta = true;
-                coincide = false;
-                bloque = "";
-            }
+                Console.Write("Numero de boleta: ");
+                int num = LeerEntero();
 
-            if (enBoleta)
-            {
-                bloque += lineas[i] + "\n";
+                bool mostrando = false;
+                bool hallada = false;
 
-            if (lineas[i].StartsWith("DNI:") && lineas[i].EndsWith(dni))
+                Console.WriteLine();
+
+                for (int i = 0; i < lineas.Length; i++)
                 {
-                    coincide = true;
-                }
-
-                if (lineas[i] == "----------")
-                {
-                    if (coincide)
+                    if (lineas[i] == "BOLETA N " + num)
                     {
-                        Console.Write(bloque);
-                        Console.WriteLine();
+                        mostrando = true;
                         hallada = true;
                     }
 
-                    enBoleta = false;
+                    if (mostrando)
+                    {
+                        Console.WriteLine(lineas[i]);
+
+                        if (lineas[i] == "----------")
+                        {
+                            mostrando = false;
+                        }
+                    }
+                }
+
+                if (!hallada)
+                {
+                    Console.WriteLine("Boleta no encontrada.");
                 }
             }
-        }
+            else if (tipo == 2)
+            {
+                string dni = LeerDni();
 
-        if (!hallada)
-        {
-            Console.WriteLine("No se encontraron boletas para ese DNI.");
-        }
+                bool enBoleta = false;
+                bool coincide = false;
+                bool hallada = false;
+                string bloque = "";
+
+                Console.WriteLine();
+
+                for (int i = 0; i < lineas.Length; i++)
+                {
+                    if (lineas[i].StartsWith("BOLETA N "))
+                    {
+                        enBoleta = true;
+                        coincide = false;
+                        bloque = "";
+                    }
+
+                    if (enBoleta)
+                    {
+                        bloque += lineas[i] + "\n";
+
+                        if (lineas[i].StartsWith("DNI:") && lineas[i].EndsWith(dni))
+                        {
+                            coincide = true;
+                        }
+
+                        if (lineas[i] == "----------")
+                        {
+                            if (coincide)
+                            {
+                                Console.Write(bloque);
+                                Console.WriteLine();
+                                hallada = true;
+                            }
+
+                            enBoleta = false;
+                        }
+                    }
+                }
+
+                if (!hallada)
+                {
+                    Console.WriteLine("No se encontraron boletas para ese DNI.");
+                }
+            }
+            else if (tipo != 0)
+            {
+                Console.WriteLine("Opcion no valida. Intente de nuevo.");
+            }
+
+        } while (tipo != 0);
     }
 
     // ---------------------------------------------------------
