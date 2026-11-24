@@ -1,9 +1,11 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
 
 class Program
 {
-    static string[] nombres = {
+    static List<string> nombres = new List<string>
+    {
         "Polo basico",
         "Camisa manga larga",
         "Jean clasico",
@@ -21,7 +23,8 @@ class Program
         "Bufanda"
     };
 
-    static double[] precios = {
+    static List<double> precios = new List<double>
+    {
         35, 80, 120, 45, 25, 180, 90, 250, 60, 70, 110, 150, 95, 130, 40
     };
 
@@ -34,14 +37,13 @@ class Program
     };
 
     // Una sola tienda: un stock por prenda
-    static int[] stock = new int[15];
+    static List<int> stock = new List<int>(new int[15]);
 
     // Cantidad total comprada de cada prenda
-    static int[] comprada = new int[15];
+    static List<int> comprada = new List<int>(new int[15]);
 
     static int numBoleta = 1001;
-    static string carpeta = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "TiendaRopa");
+    static string carpeta = "TiendaRopa";
     static string archivoDatos = Path.Combine(carpeta, "datos.txt");
     static string archivoBoletas = Path.Combine(carpeta, "boletas.txt");
 
@@ -68,12 +70,11 @@ class Program
                 if (opcion == 1) VerCatalogoYStock();
                 else if (opcion == 2) EmitirBoleta();
                 else if (opcion == 3) BuscarBoleta();
-                else if (opcion == 4) VerPrendasCompradas();
+                else if (opcion == 4) MenuPrendasCompradas();
                 else if (opcion != 0) Console.WriteLine("Opcion invalida.");
             }
             catch (Exception ex)
             {
-                // Muestra el error real para poder ubicarlo
                 Console.WriteLine();
                 Console.WriteLine("ERROR: " + ex.GetType().Name + " - " + ex.Message);
                 Console.WriteLine(ex.StackTrace);
@@ -99,7 +100,6 @@ class Program
         Console.Write("Elija una opcion: ");
     }
 
-    // Revisa si se pueden guardar archivos. Si no, el programa trabaja solo en memoria.
     static void PrepararArchivos()
     {
         try
@@ -117,7 +117,6 @@ class Program
         }
     }
 
-    // Convierte un texto en lineas (ignora lineas vacias)
     static string[] LeerLineas(string texto)
     {
         string[] partes = texto.Replace("\r", "").Split('\n');
@@ -157,22 +156,20 @@ class Program
         return n;
     }
 
-    // Pide el numero de prenda hasta que este entre 1 y 15
     static int LeerPrenda()
     {
-        Console.Write("Numero de prenda (1-15): ");
+        Console.Write("Numero de prenda (1-" + nombres.Count + "): ");
         int p = LeerEntero();
 
-        while (p < 1 || p > 15)
+        while (p < 1 || p > nombres.Count)
         {
-            Console.Write("Numero de prenda invalido. Ingrese un numero de 1 a 15: ");
+            Console.Write("Numero de prenda invalido. Ingrese un numero de 1 a " + nombres.Count + ": ");
             p = LeerEntero();
         }
 
         return p;
     }
 
-    // Pide la cantidad hasta que este entre 1 y 50
     static int LeerCantidad()
     {
         Console.Write("Cantidad (1-50): ");
@@ -187,7 +184,6 @@ class Program
         return c;
     }
 
-    // Pide un texto que no puede quedar vacio
     static string LeerTexto(string mensaje)
     {
         Console.Write(mensaje);
@@ -202,7 +198,6 @@ class Program
         return texto.Trim();
     }
 
-    // Pide un DNI de 8 digitos
     static string LeerDni()
     {
         Console.Write("DNI del cliente (8 digitos): ");
@@ -230,10 +225,9 @@ class Program
         return true;
     }
 
-
     static void LlenarStockInicial()
     {
-        for (int p = 0; p < 15; p++)
+        for (int p = 0; p < stock.Count; p++)
         {
             stock[p] = 50;
         }
@@ -249,19 +243,16 @@ class Program
         stock[p - 1] = valor;
     }
 
-
     static void GuardarDatos()
     {
         string[] lineas = new string[31];
         lineas[0] = numBoleta.ToString();
 
-        // Guardar stock (una linea por prenda)
         for (int p = 0; p < 15; p++)
         {
             lineas[p + 1] = stock[p].ToString();
         }
 
-        // Guardar prendas compradas
         for (int p = 0; p < 15; p++)
         {
             lineas[p + 16] = comprada[p].ToString();
@@ -282,9 +273,6 @@ class Program
         }
     }
 
-
-    // Carga los datos guardados. Solo acepta valores validos;
-    // si el archivo es viejo o esta danado, se quedan los datos iniciales.
     static void CargarDatos()
     {
         if (!archivosDisponibles || !File.Exists(archivoDatos))
@@ -296,8 +284,6 @@ class Program
         {
             string[] lineas = File.ReadAllLines(archivoDatos);
 
-            // Solo se acepta el formato exacto de esta version (31 lineas, sin comas).
-            // Un archivo de una version anterior se ignora por completo.
             if (lineas.Length != 31)
             {
                 return;
@@ -318,7 +304,6 @@ class Program
                 numBoleta = numeroGuardado;
             }
 
-            // Cargar stock (solo valores validos entre 0 y 50)
             for (int p = 0; p < 15; p++)
             {
                 string[] partes = lineas[p + 1].Split(',');
@@ -331,7 +316,6 @@ class Program
                 }
             }
 
-            // Cargar compras si el archivo tiene el formato completo
             if (lineas.Length >= 31)
             {
                 for (int p = 0; p < 15; p++)
@@ -353,7 +337,11 @@ class Program
         }
     }
 
-static void VerCatalogoYStock()
+    // ---------------------------------------------------------
+    //  1. CATALOGO Y STOCK
+    // ---------------------------------------------------------
+
+    static void VerCatalogoYStock()
     {
         int totalGeneral = 0;
 
@@ -362,7 +350,7 @@ static void VerCatalogoYStock()
                           "Precio sin IGV".PadLeft(16) + "Stock".PadLeft(8));
         Console.WriteLine(new string('-', 54));
 
-        for (int p = 1; p <= 15; p++)
+        for (int p = 1; p <= nombres.Count; p++)
         {
             int cantidad = ObtenerStock(p);
             totalGeneral += cantidad;
@@ -376,6 +364,42 @@ static void VerCatalogoYStock()
         Console.WriteLine(new string('-', 54));
         Console.WriteLine("TOTAL".PadRight(46) + totalGeneral.ToString().PadLeft(8));
         Console.WriteLine("Tallas: XS, S, M, L, XL (se elige al comprar)");
+
+        Console.WriteLine();
+        Console.WriteLine("1. Agregar nueva prenda");
+        Console.WriteLine("0. Volver al menu principal");
+        Console.Write("Elija una opcion: ");
+
+        if (LeerEntero() == 1)
+        {
+            AgregarPrenda();
+        }
+    }
+
+    static void AgregarPrenda()
+    {
+        string nombre = LeerTexto("Nombre de la prenda: ");
+
+        Console.Write("Precio sin IGV: S/ ");
+        double precio;
+        while (!double.TryParse(Console.ReadLine(), out precio) || precio <= 0)
+        {
+            Console.Write("Precio invalido. Ingrese un numero mayor a 0: ");
+        }
+
+        Console.Write("Stock inicial (0-50): ");
+        int s = LeerEntero();
+        while (s < 0 || s > 50)
+        {
+            Console.Write("Stock invalido. Ingrese de 0 a 50: ");
+            s = LeerEntero();
+        }
+
+        nombres.Add(nombre);
+        precios.Add(precio);
+        stock.Add(s);
+        comprada.Add(0);
+        Console.WriteLine("Prenda agregada con el numero " + nombres.Count);
     }
 
     static void VerColores()
@@ -398,7 +422,6 @@ static void VerCatalogoYStock()
         }
     }
 
-    // La gorra (5) y la bufanda (15) no llevan talla
     static bool UsaTalla(int p)
     {
         if (p == 5 || p == 15)
@@ -410,7 +433,7 @@ static void VerCatalogoYStock()
     }
 
     // ---------------------------------------------------------
-    //  VENTAS
+    //  2. EMITIR BOLETA
     // ---------------------------------------------------------
 
     static void EmitirBoleta()
@@ -423,6 +446,22 @@ static void VerCatalogoYStock()
 
         string cliente = LeerTexto("Nombre del cliente: ");
         string dni = LeerDni();
+
+        string pais = LeerTexto("Pais: ");
+        string distrito = LeerTexto("Distrito: ");
+        string calle = LeerTexto("Nombre de la calle: ");
+
+        Console.Write("Sexo del cliente (1=Hombre, 2=Mujer): ");
+        int sexo = LeerEntero();
+
+        while (sexo < 1 || sexo > 2)
+        {
+            Console.Write("Opcion invalida. Ingrese 1=Hombre o 2=Mujer: ");
+            sexo = LeerEntero();
+        }
+
+        string textoSexo = "Hombre";
+        if (sexo == 2) textoSexo = "Mujer";
 
         Console.Write("Forma de pago (1=Yape, 2=BCP): ");
         int pago = LeerEntero();
@@ -438,13 +477,15 @@ static void VerCatalogoYStock()
 
         if (pago == 2) formaPago = "BCP";
 
+        List<int> stockAntes = new List<int>(stock);
+        List<int> compradaAntes = new List<int>(comprada);
+
         double subtotal = 0;
         string detalle = "";
         int seguir = 1;
 
         while (seguir == 1)
         {
-            // Si el numero de prenda no existe, solo se vuelve a pedir el numero
             int p = LeerPrenda();
             int cant = LeerCantidad();
 
@@ -519,6 +560,10 @@ static void VerCatalogoYStock()
         boleta += "Fecha:    " + fecha + "\n";
         boleta += "Cliente:  " + cliente + "\n";
         boleta += "DNI:      " + dni + "\n";
+        boleta += "Sexo:     " + textoSexo + "\n";
+        boleta += "Pais:     " + pais + "\n";
+        boleta += "Distrito: " + distrito + "\n";
+        boleta += "Calle:    " + calle + "\n";
         boleta += detalle;
         boleta += "Subtotal: S/ " + subtotal.ToString("0.00") + "\n";
         boleta += "IGV 18%:  S/ " + igv.ToString("0.00") + "\n";
@@ -528,6 +573,28 @@ static void VerCatalogoYStock()
 
         Console.WriteLine();
         Console.WriteLine(boleta);
+
+        Console.WriteLine();
+        Console.Write("Esta de acuerdo con hacer la compra? (1=Si, 0=No): ");
+        int acuerdo = LeerEntero();
+
+        while (acuerdo != 0 && acuerdo != 1)
+        {
+            Console.Write("Opcion invalida. Esta de acuerdo? (1=Si, 0=No): ");
+            acuerdo = LeerEntero();
+        }
+
+        if (acuerdo == 0)
+        {
+            for (int i = 0; i < stock.Count; i++)
+            {
+                stock[i] = stockAntes[i];
+                comprada[i] = compradaAntes[i];
+            }
+
+            Console.WriteLine("Compra cancelada. No se emitio la boleta.");
+            return;
+        }
 
         boletasMem += boleta + "\n";
 
@@ -547,6 +614,10 @@ static void VerCatalogoYStock()
         numBoleta++;
         GuardarDatos();
     }
+
+    // ---------------------------------------------------------
+    //  3. BUSCAR BOLETA
+    // ---------------------------------------------------------
 
     static void BuscarBoleta()
     {
@@ -580,7 +651,7 @@ static void VerCatalogoYStock()
             {
                 bloque += lineas[i] + "\n";
 
-                if (lineas[i].Contains(dni))
+                if (lineas[i] == "DNI:      " + dni)
                 {
                     coincide = true;
                 }
@@ -604,7 +675,47 @@ static void VerCatalogoYStock()
             Console.WriteLine("No se encontraron boletas para ese DNI.");
         }
     }
-    
+
+    // ---------------------------------------------------------
+    //  4. VER PRENDAS COMPRADAS Y EXPORTAR ARCHIVOS
+    // ---------------------------------------------------------
+
+    static void MenuPrendasCompradas()
+    {
+        int opcion = 0;
+
+        do
+        {
+            Console.WriteLine("\n=== MENU DE COMPRAS ===");
+            Console.WriteLine("1. Ver prendas compradas");
+            Console.WriteLine("2. Guardar en archivo de texto (.txt)");
+            Console.WriteLine("3. Guardar en archivo binario (.bin)");
+            Console.WriteLine("0. Volver al menu principal");
+            Console.Write("Seleccione una opcion: ");
+
+            opcion = LeerEntero();
+
+            switch (opcion)
+            {
+                case 1:
+                    VerPrendasCompradas();
+                    break;
+                case 2:
+                    GuardarEnTxt();
+                    break;
+                case 3:
+                    GuardarEnBinario();
+                    break;
+                case 0:
+                    break;
+                default:
+                    Console.WriteLine("Opcion no valida. Intente de nuevo.");
+                    break;
+            }
+
+        } while (opcion != 0);
+    }
+
     static void VerPrendasCompradas()
     {
         Console.WriteLine();
@@ -613,10 +724,9 @@ static void VerCatalogoYStock()
 
         int totalComprado = 0;
 
-        for (int p = 0; p < 15; p++)
+        for (int p = 0; p < nombres.Count; p++)
         {
             totalComprado += comprada[p];
-
             Console.WriteLine((p + 1).ToString().PadRight(4) +
                               nombres[p].PadRight(26) +
                               comprada[p].ToString().PadLeft(10));
@@ -629,5 +739,47 @@ static void VerCatalogoYStock()
         {
             Console.WriteLine("Todavia no se han comprado prendas.");
         }
+    }
+
+    static void GuardarEnTxt()
+    {
+        string rutaArchivo = Path.Combine(carpeta, "prendas_compradas.txt");
+
+        using (StreamWriter writer = new StreamWriter(rutaArchivo))
+        {
+            writer.WriteLine("N".PadRight(4) + "Prenda".PadRight(26) + "Cantidad".PadLeft(10));
+            writer.WriteLine(new string('-', 40));
+
+            int totalComprado = 0;
+
+            for (int p = 0; p < nombres.Count; p++)
+            {
+                totalComprado += comprada[p];
+                writer.WriteLine((p + 1).ToString().PadRight(4) +
+                                 nombres[p].PadRight(26) +
+                                 comprada[p].ToString().PadLeft(10));
+            }
+
+            writer.WriteLine(new string('-', 40));
+            writer.WriteLine("TOTAL".PadRight(30) + totalComprado.ToString().PadLeft(10));
+        }
+
+        Console.WriteLine("\nDatos guardados correctamente en '" + rutaArchivo + "'.");
+    }
+
+    static void GuardarEnBinario()
+    {
+        string rutaArchivo = Path.Combine(carpeta, "prendas_compradas.bin");
+
+        using (BinaryWriter writer = new BinaryWriter(File.Open(rutaArchivo, FileMode.Create)))
+        {
+            for (int p = 0; p < nombres.Count; p++)
+            {
+                writer.Write(nombres[p] ?? "");
+                writer.Write(comprada[p]);
+            }
+        }
+
+        Console.WriteLine("\nDatos guardados correctamente en '" + rutaArchivo + "'.");
     }
 }
